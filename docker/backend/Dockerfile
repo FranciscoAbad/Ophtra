@@ -15,7 +15,6 @@ COPY --from=build /build/target/ophtra-*.jar /app/
 
 EXPOSE 8088
 
-ENV DB_URL=jdbc:postgresql://postgres-sql-ophtra:5432/ophtra
 ENV ACTIVE_PROFILE=${PROFILE}
 ENV JAR_VERSION=${APP_VERSION}
 

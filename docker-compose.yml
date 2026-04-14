@@ -3,8 +3,8 @@ services:
     container_name: postgres-sql-ophtra
     image: postgres
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
       PGDATA: /var/lib/postgresql/data
       POSTGRES_DB: ophtra
     volumes:
@@ -14,18 +14,33 @@ services:
     networks:
       - spring-demo
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ophtra"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   ophtra-api:
     container_name: ophtra-api
-    image: ophtra/ophtra:1.0.0
+    image: franciscoabad/ophtra-api:latest
     ports:
       - 8088:8088
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - DB_URL=jdbc:postgresql://postgres-sql-ophtra:5432/ophtra
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:-password}
     networks:
       - spring-demo
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
 networks:
   spring-demo:
     driver: bridge
+
 volumes:
   postgres:
     driver: local
